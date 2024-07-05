@@ -1,8 +1,8 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, RequestFactory
 from home.forms import UserRegistrationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.urls import reverse
-
+from home.views import Home
 
 class TestUserRegistrationView(TestCase):
     
@@ -48,3 +48,23 @@ class TestWriterView(TestCase):
         response = self.client.get(reverse('home:writers'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'home/writers.html')
+        
+class test_home_view(TestCase):
+    def setUp(self):
+         self.user = User.objects.create_user(username='root', password='root', email='root@email.com')
+         self.factory = RequestFactory()
+         
+    # in this section we need to check if the user is loged in or annonymous user so we need to have access to the request rather than response
+    # so we use request factory for cloning the request and add the user to request the way we want 
+    def test_home_user_authenticated(self):
+        request = self.factory.get(reverse('home:home'))
+        request.user = self.user
+        # the syntax is for view class , we pass the request like this 
+        response = Home.as_view()(request)
+        self.assertEqual(response.status_code, 302)
+        
+    def test_home_user_annonymous(self):
+        request = self.factory.get(reverse('home:home'))
+        request.user = AnonymousUser()
+        response = Home.as_view()(request)
+        self.assertEqual(response.status_code, 200)
