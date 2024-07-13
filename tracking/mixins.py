@@ -1,4 +1,5 @@
 from .base_mixins import BaseLoggingMixin
 
 class LoggingMixin(BaseLoggingMixin):
-    pass
+    def handle_log(self):
+        print(self.log)
